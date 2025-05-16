@@ -121,6 +121,60 @@ class _SchematicDesignerState extends State<SchematicDesigner> {
     });
 
     try {
+      final prompt = '''A blueprint schematic image of a solar installation of a house with the following requirements:
+    
+    - Solar Panel Array (${designParams['typeOfPanel']})
+      * Array Size: ${designParams['sizeOfSolarPanelArray']}
+      * Number of Panels: ${designParams['numberOfSolarPanels']}
+      * Panel Capacity: ${designParams['capacityOfEachPanel']}
+    - Battery Bank (${designParams['batteryCapacity']})
+    - Charge Controller (${designParams['sizeOfChargeControllers']})
+    - Inverter (${designParams['EnergyinverterEfficiency']})
+
+    Show all electrical connections between components using proper schematic notation. 
+    Include necessary fuses, circuit breakers, and protection apparatus.''';
+
+      final response = await http.post(
+        Uri.parse('https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2'),
+        headers: {
+          'Authorization': 'Bearer ${dotenv.env['HF_API_KEY']}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'inputs': prompt}),
+      );
+
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+        final tempDir = await getTemporaryDirectory();
+        final tempFile = File('${tempDir.path}/schematic.png');
+        await tempFile.writeAsBytes(bytes);
+
+        setState(() {
+          schematicImage = tempFile.path;
+          isLoading = false;
+        });
+
+        _showSchematic();
+      } else {
+        throw Exception('API request failed: ${response.body}');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        errorMessage = e.toString();
+      });
+    }
+  }
+
+
+  /*
+  Future<void> generateSchematic() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
       final projectId = dotenv.env['GCP_PROJECT_ID'];
       final location = 'us-central1';
       final apiEndpoint = 'https://$location-aiplatform.googleapis.com/v1/projects/$projectId/locations/$location/publishers/google/models/imagegeneration@002:predict';
@@ -190,8 +244,9 @@ class _SchematicDesignerState extends State<SchematicDesigner> {
         errorMessage = e.toString();
       });
     }
-  }
+  } */
 
+  /*
   // Updated authentication method using googleapis_auth
   Future<String> _getAccessToken() async {
     final client = http.Client();
@@ -222,7 +277,7 @@ class _SchematicDesignerState extends State<SchematicDesigner> {
       client.close(); // Make sure to close the client when done
     }
   }
-
+*/
   void _showDesignParameters() {
     showDialog(
       context: context,
