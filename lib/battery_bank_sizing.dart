@@ -88,6 +88,7 @@ class _BatterySizeState extends State<BatterySize> {
                       "Solar Energy Demand: $solarEnergyDemand,"
                       "Size of Solar Panel Array: $sizeOfSolarPanelArray,"
                       "Capacity of Each Panel: $capacityOfEachPanel,"
+                      "Number of Solar Panels: $numberOfSolarPanels "),*/
                   Text('Don\'t know what the System Voltage is?',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
