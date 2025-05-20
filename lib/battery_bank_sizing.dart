@@ -79,7 +79,7 @@ class _BatterySizeState extends State<BatterySize> {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  Text("Total Energy Consumed: $totalEnergyConsumed, "
+                  /*Text("Total Energy Consumed: $totalEnergyConsumed, "
                       "Energy Demand: $energyDemand, "
                       "Battery Energy Capacity: $batteryEnergyCapacity,"
                       "Battery Capacity: $batteryCapacity "
@@ -88,7 +88,6 @@ class _BatterySizeState extends State<BatterySize> {
                       "Solar Energy Demand: $solarEnergyDemand,"
                       "Size of Solar Panel Array: $sizeOfSolarPanelArray,"
                       "Capacity of Each Panel: $capacityOfEachPanel,"
-                      "Number of Solar Panels: $numberOfSolarPanels "),
                   Text('Don\'t know what the System Voltage is?',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,

@@ -42,8 +42,7 @@ class _SchematicDesignerState extends State<SchematicDesigner> {
     'capacityOfEachPanel': '$capacityOfEachPanel',
     'numberOfSolarPanels': '$numberOfSolarPanels',
     'maximumPowerVoltageOfArray': '$maximumPowerVoltageOfArray',
-    'sizeOfChargeControllers': '$sizeOfChargeControllers',
-  };
+    'sizeOfChargeControllers': '$sizeOfChargeControllers',};
 
   // Controllers for text fields
   final Map<String, TextEditingController> controllers = {};
@@ -114,6 +113,7 @@ class _SchematicDesignerState extends State<SchematicDesigner> {
     );
   }
 
+
   Future<void> generateSchematic() async {
     setState(() {
       isLoading = true;
@@ -122,6 +122,67 @@ class _SchematicDesignerState extends State<SchematicDesigner> {
 
     try {
       final prompt = '''A blueprint schematic image of a solar installation of a house with the following requirements:
+
+- Solar Panel Array (${designParams['typeOfPanel']})
+  * Array Size: ${designParams['sizeOfSolarPanelArray']}
+  * Number of Panels: ${designParams['numberOfSolarPanels']}
+  * Panel Capacity: ${designParams['capacityOfEachPanel']}
+- Battery Bank (${designParams['batteryCapacity']})
+- Charge Controller (${designParams['sizeOfChargeControllers']})
+- Inverter (${designParams['EnergyinverterEfficiency']})
+
+Show all electrical connections between components using proper schematic notation. 
+Include necessary fuses, circuit breakers, and protection apparatus.''';
+
+      final uri = Uri.parse('https://api.stability.ai/v2beta/stable-image/generate/ultra');
+      final request = http.MultipartRequest('POST', uri)
+        ..headers['Authorization'] = 'Bearer ${dotenv.env['STABILITY_API_KEY']}'
+        ..fields['prompt'] = prompt
+        ..fields['output_format'] = 'png'
+        ..fields['mode'] = 'text-to-image'
+        ..fields['cfg_scale'] = '7'
+        ..fields['steps'] = '30'
+        ..fields['height'] = '512'
+        ..fields['width'] = '512';
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200) {
+        final bytes = response.bodyBytes;
+
+        final tempDir = await getTemporaryDirectory();
+        final tempFile = File('${tempDir.path}/schematic.png');
+        await tempFile.writeAsBytes(bytes);
+
+
+        setState(() {
+          schematicImage = tempFile.path;
+          isLoading = false;
+        });
+
+        _showSchematic();
+      } else {
+        throw Exception('❌ Error ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        errorMessage = "❌ Request failed: $e";
+      });
+    }
+  }
+
+
+  /*
+  Future<void> generateSchematic() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      final test_prompts = '''A blueprint schematic image of a solar installation of a house with the following requirements:
     
     - Solar Panel Array (${designParams['typeOfPanel']})
       * Array Size: ${designParams['sizeOfSolarPanelArray']}
@@ -135,12 +196,12 @@ class _SchematicDesignerState extends State<SchematicDesigner> {
     Include necessary fuses, circuit breakers, and protection apparatus.''';
 
       final response = await http.post(
-        Uri.parse('https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2'),
+        Uri.parse('https://api.stability.ai/v1/generation/stable-diffusion-v1-5/text-to-image'),
         headers: {
-          'Authorization': 'Bearer ${dotenv.env['HF_API_KEY']}',
+          'Authorization': 'Bearer ${dotenv.env['STABILITY_API_KEY']}',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({'inputs': prompt}),
+        body: jsonEncode({'inputs': test_prompts}),
       );
 
       if (response.statusCode == 200) {
@@ -165,7 +226,7 @@ class _SchematicDesignerState extends State<SchematicDesigner> {
       });
     }
   }
-
+*/
 
   /*
   Future<void> generateSchematic() async {
